@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chargement...</title>
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1E90FF">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<style>
+html, body {
+  margin:0;
+  height:100%;
+  background: radial-gradient(circle at top left, #222, #000);
+  font-family: Arial, sans-serif;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+body::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:url('ma-photo.jpg') center/cover no-repeat;
+  filter: brightness(0.5);
+  z-index:0;
+}
+
+#welcome-container {
+  position:relative;
+  z-index:1;
+  text-align:center;
+  color:white;
+}
+
+/* ===== Logo départ ===== */
+.lock.logo {
+  width:230px;
+  height:230px;
+  border-radius:50%;
+  background:url('/logo-mon-site.png') center/cover no-repeat;
+  cursor:pointer;
+  box-shadow:0 0 40px rgba(30,144,255,.6);
+  animation: logo-pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes logo-pulse {
+  0%{transform:scale(0.60)}
+  50%{transform:scale(.47)}
+  100%{transform:scale(0.60)}
+}
+
+/* ===== Boutons ===== */
+#button-container {
+  display:flex;
+  flex-direction:column;
+  gap:25px;
+  padding:20px;
+  max-height:90vh;
+  overflow-y:auto; /* On garde le défilement fonctionnel */
+  align-items:center;
+
+  /* Pour masquer la barre de scroll sur tous les navigateurs */
+  -ms-overflow-style: none;  /* Internet Explorer et Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Pour Chrome, Safari et Opera */
+#button-container::-webkit-scrollbar {
+  display: none;
+}
+
+.button-card {
+  width:160px;
+  height:160px;
+  background:#111;
+  border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  font-size:3rem;
+  cursor:pointer;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.button-card span {
+  font-size:.8rem;
+  margin-top:8px;
+  opacity:.8;
+}
+
+/* ===== Halo orangé permanent pour boutons autres que guitare ===== */
+.button-card:not(.guitar) {
+  box-shadow: 0 0 35px rgba(255,165,0,0.8); /* halo orangé permanent */
+}
+
+/* ===== Agrandissement au survol ===== */
+.button-card:not(.guitar):hover {
+  transform: scale(1.15);
+}
+
+/* ===== PULSE UNIQUE (SCALE) ===== */
+@keyframes pulse-scale {
+  0%   { transform: scale(var(--base-scale, 1)); }
+  50%  { transform: scale(calc(var(--base-scale, 1) * 1.15)); }
+  100% { transform: scale(var(--base-scale, 1)); }
+}
+
+/* ===== Guitare BLEUE ===== */
+.button-card.guitar {
+  --base-scale: 1;
+  font-size:3.2rem;
+  animation: pulse-scale 2s infinite ease-in-out;
+  box-shadow:0 0 30px #1E90FF;
+}
+
+/* ===== Guitare VIOLETTE (saisie) ===== */
+.button-card.guitar.violet {
+  --base-scale: 1.0;
+  box-shadow:0 0 45px #4B0082;
+}
+
+/* ===== Guitare VALIDÉE ===== */
+.button-card.guitar.valid {
+  --base-scale: 1;
+  animation:none;
+  box-shadow:0 0 60px 15px #00FF00;
+}
+
+/* ===== Champ mot de passe ===== */
+input.secret {
+  width:200px;
+  padding:14px;
+  margin-top:14px;
+  font-size:1.1rem;
+  border-radius:10px;
+  border:none;
+  text-align:center;
+  background:#222;
+  color:white;
+  box-shadow:0 0 10px rgba(255,215,0,.4);
+}
+
+/* ===== Particules ===== */
+.particle {
+  position:fixed;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  pointer-events:none;
+  animation:star 2s forwards, sparkle 1s infinite alternate;
+}
+
+@keyframes star {
+  to {
+    transform: translate(var(--x), var(--y)) scale(.5);
+    opacity:0;
+  }
+}
+
+@keyframes sparkle {
+  0%,100% { opacity:.3; transform:scale(.5); }
+  50% { opacity:1; transform:scale(1); }
+}
+</style>
+</head>
+
+<body>
+
+<div id="welcome-container">
+  <div id="starter-lock" class="lock logo"></div>
+</div>
+
+<script>
+const SERVER_URL = '/check-password';
+const starter = document.getElementById('starter-lock');
+
+starter.onclick = () => {
+  starter.remove();
+  showVerticalButtons();
+};
+
+function showVerticalButtons() {
+  const container = document.createElement('div');
+  container.id = 'button-container';
+  document.getElementById('welcome-container').appendChild(container);
+
+  // 🎸 Guitare
+  addButton(container,'🎸','Mon site',openPassword,true);
+
+  // Autres boutons (icônes originales)
+  const buttons = [
+    {i:'🔒', u:`http://${location.hostname}:8001/onglets.html`},
+    {i:'❄️', u:`http://${location.hostname}:3000/onglets.html`},
+    {i:'👶', u:`http://${location.hostname}:8080/onglets.html`},
+    {i:'🎬', u:`http://${location.hostname}:8002/`},
+    {i:'🧮', u:`http://${location.hostname}:8003/`},
+    {i:'🛠️', u:`http://${location.hostname}:8004/`},
+  ];
+
+  buttons.forEach(b =>
+    addButton(container, b.i, '', () => location.href = b.u)
+  );
+}
+
+function addButton(parent, icon, title, action, guitar=false){
+  const c = document.createElement('div');
+  c.className = 'button-card' + (guitar ? ' guitar' : '');
+  c.innerHTML = `${icon}<span>${title}</span>`;
+  c.onclick = action;
+  parent.appendChild(c);
+}
+
+/* ===== Mot de passe ===== */
+function openPassword(){
+  document.querySelectorAll('.secret').forEach(e=>e.remove());
+
+  const guitar = document.querySelector('.button-card.guitar');
+
+  guitar.classList.add('violet');
+
+  const input = document.createElement('input');
+  input.className='secret';
+  input.placeholder='Mot de passe';
+  guitar.after(input);
+  input.focus();
+
+  let real='';
+
+  input.oninput = async () => {
+    const v = input.value;
+    real = v.length < real.length
+      ? real.slice(0,v.length)
+      : real + v.slice(real.length);
+
+    input.value =
+      '*'.repeat(Math.max(0,real.length-1)) + real.slice(-1);
+
+    const r = await fetch(SERVER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code:real})
+    });
+
+    const d = await r.json();
+
+    if(d.ok){
+      guitar.classList.remove('violet');
+      guitar.classList.add('valid');
+
+      explodeStars();
+      setTimeout(()=>location.href='/onglets.html',1500);
+    }
+  };
+}
+
+/* ===== Explosion étoiles ===== */
+function explodeStars(){
+  const colors=['#fff','#ffe599','#fffae3'];
+  for(let i=0;i<150;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.left=Math.random()*innerWidth+'px';
+    p.style.top=Math.random()*innerHeight+'px';
+
+    const a=Math.random()*Math.PI*2;
+    const d=30+Math.random()*150;
+
+    p.style.setProperty('--x',Math.cos(a)*d+'px');
+    p.style.setProperty('--y',Math.sin(a)*d+'px');
+
+    p.style.background =
+      colors[Math.floor(Math.random()*colors.length)];
+
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),2500);
+  }
+}
+
+/* ===== Service Worker ===== */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<link rel="manifest" href="/manifest.json">
+
+<meta name="theme-color" content="#1E90FF">
+
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<meta charset="utf-8" />
+<title id="site-title"></title>
+
+<script>
+fetch('/api/site-title')
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('site-title').innerText = data.title;
+  });
+</script>
+
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+:root {
+  --bg:#222; --card:#333; --muted:#555; --chat-bg:#111; --accent-blue:#1E90FF;
+  --tab-gradient: linear-gradient(135deg, #1E90FF, #00BFFF);
+}
+html,body{
+  height:100%;
+  margin:0;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+
+  /* === Fond d'écran === */
+  background:
+    linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+    url("/ma-photo2.jpg") center / cover no-repeat fixed;
+}
+
+.container{width:95%;max-width:980px;margin:18px auto;position:relative;}
+#searchBar{display:block;margin:12px auto;padding:10px 12px;width:90%;max-width:420px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;text-align:center;}
+#upload-btn {margin:12px auto;text-align:center;}
+#upload-btn i {font-size:32px;color:#1E90FF;cursor:pointer;}
+#upload-btn div {color:#1E90FF;font-size:0.9rem;margin-top:4px;cursor:default;text-decoration:none;}
+#upload-btn div:hover { text-decoration:none }
+
+.box{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.45);} 
+.single-tab-row{display:flex;justify-content:center;margin-bottom:8px;position:relative;}
+.tab-button{padding:9px 12px;border-radius:8px;border:none;color:white;font-weight:700;cursor:pointer;background:var(--tab-gradient);display:inline-flex;align-items:center;gap:8px;}
+.tab-button.active{box-shadow:0 0 12px rgba(255,215,0,0.45);}
+#tchatButton{background: var(--accent-blue) !important;}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;}
+.tabs button{
+  flex:1 1 calc(33% - 12px);
+  min-width:120px;
+  padding:9px;
+  border-radius:8px;
+  border:none;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+  background: linear-gradient(90deg, blue, violet, red);
+  transition: all 0.2s;
+}
+.tabs button.active{
+  background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+}
+.tab-content{display:none;padding-top:8px;}
+.tab-content.active{display:block;}
+ul{list-style:none;padding:0;margin:0;}
+li{margin:10px 0;padding:8px;border-radius:6px;background:#2b2b2b;border:1px solid var(--muted);display:flex;gap:12px;align-items:center;justify-content:space-between;}
+img,video,audio,iframe{max-width:100%;border-radius:6px;display:block;}
+video,audio{width:100%;}
+
+#chat-wrapper{display:flex;flex-direction:column;gap:8px;}
+#chat-input{padding:10px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;width:100%;box-sizing:border-box;}
+#chat-messages {
+  padding: 12px;
+  border-radius: 8px;
+  height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  /* --- LE FOND D'ÉCRAN --- */
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+              url("/ma-photo4.jpg") center / cover no-repeat;
+  background-attachment: scroll; 
+}
+
+/* === Styles chat bulles === */
+.message-row {display: flex; align-items: flex-end; margin-bottom: 6px; gap: 6px;}
+.message-left {justify-content: flex-start;}
+.message-right {justify-content: flex-end;}
+.timestamp {font-size: 0.7rem; color: #aaa; min-width: 40px; text-align: right;}
+.message-bubble {display: inline-block; max-width: 75%; padding: 8px 12px; border-radius: 12px; word-wrap: break-word; white-space: pre-wrap; color: #fff;}
+.message-bubble.mine {border: 2px solid #fff;}
+
+#notifBadge{display:none;background:red;color:#fff;border-radius:50%;padding:2px 6px;font-size:.8rem;margin-left:6px;vertical-align:middle;}
+#toast{position:fixed;top:18px;right:18px;background:rgba(0,0,0,0.8);color:#fff;padding:10px 14px;border-radius:8px;display:none;z-index:9999;}
+#adminControls{display:none;text-align:center;margin:10px;}
+.delete-btn{cursor:pointer;color:red;display:none;}
+@media(max-width:600px){.tabs button{flex:1 1 calc(50% - 10px);}.message-bubble{max-width:92%;}li{flex-direction:column;align-items:flex-start;}}
+
+#chat-messages a {color: #1E90FF;text-decoration:underline;transition: color 0.2s, text-shadow 0.2s;}
+#chat-messages a:hover {color: #FFD700;text-shadow: 0 0 3px #FFD700;}
+
+/* Hover effect sur les logos */
+.logo-link img {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.logo-link:hover img {
+  transform: scale(1.2);
+  filter: brightness(1.3);
+}
+
+/* Barre logos + étoile */
+.logo-bar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:12px 0;
+  flex-wrap:wrap;
+}
+
+/* Logos centrés */
+.logo-bar .logos {
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex:1;
+  flex-wrap:wrap;
+}
+
+@media(max-width:480px){
+  .logo-link img { height:20px !important; width:auto !important; }
+  #adminStar { font-size:18px !important; }
+}
+.site-btn {
+  background-color: red;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.site-btn:hover {
+  transform: scale(1.1);
+  background-color: darkred;
+}
+
+/* Garde le bouton à gauche */
+.logo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.logo-bar .logos {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#adminStar {
+  margin-left: auto; 
+  position: relative;
+  z-index: 1;
+}
+/* === Fond image pour la zone fichiers === */
+.box {
+  background:
+    linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+    url("/ma-photo3.jpg") center / cover no-repeat;
+  border-radius: 12px;
+}
+
+/* === Chaque fichier === */
+li {
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Barre de logos avec étoile à droite, logos centrés -->
+<div class="logo-bar">
+  <span id="logoutLock" title="Double-clic pour se déconnecter" style="cursor:pointer;font-size:20px;color:white;margin-right:auto;position:relative;z-index:1;">🔒</span>
+
+  <div class="logos">
+     <a href="/onglets.html" class="site-btn">Site personnel</a>
+  </div>
+
+  <div style="margin-left:auto; display:flex; gap:15px; align-items:center; position:relative; z-index:1;">
+    <i id="fullscreenBtn" class="fas fa-expand" style="cursor:pointer; font-size:20px; color: #1E90FF;" title="Plein écran"></i>
+    <span id="adminStar" style="cursor:pointer;font-size:20px;color:gold;">⭐</span>
+  </div>
+</div>
+
+<style>
+.logo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centre le contenu principal */
+  gap: 12px;
+  margin: 12px 0;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+/* Logos centrés horizontalement */
+.logo-bar .logos {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  position: absolute;  /* permet de centrer sans tenir compte de l'étoile */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* L'étoile reste à droite */
+#adminStar {
+  margin-left: auto; 
+  position: relative;
+  z-index: 1;
+}
+</style>
+
+<!-- Recherche + upload -->
+<input id="searchBar" type="text" placeholder="🔍 Rechercher un fichier..." />
+<div id="upload-progress-container" style="display:none; width:90%; max-width:420px; margin:10px auto; background:#444; border-radius:10px; overflow:hidden;">
+  <div id="upload-progress-bar" style="width:0%; height:12px; background:var(--tab-gradient); transition: width 0.2s;"></div>
+</div>
+<div id="upload-status-text" style="text-align:center; font-size:0.8rem; margin-top:5px;"></div>
+<div id="upload-btn">
+  <i id="upload-icon" class="fas fa-cloud-arrow-up"></i>
+  <div id="upload-text">Uploader des fichiers</div>
+</div>
+<input type="file" id="fileUpload" multiple style="display:none;" />
+
+<div id="adminControls">
+  <button id="clearChatBtn" style="padding:8px 12px;border-radius:6px;border:none;background:red;color:white;cursor:pointer;">
+    🗑️ Supprimer tous les messages
+  </button>
+</div>
+<div class="box">
+  <div class="single-tab-row">
+    <button id="tchatButton" class="tab-button" onclick="openTab('tchat', this)">💬 Message(s) <span id="notifBadge">0</span></button>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Sections de fichiers">
+    <button onclick="openTab('photos', this)" class="active">📷 Photos</button>
+    <button onclick="openTab('videos', this)">🎬 Vidéos</button>
+    <button onclick="openTab('sons', this)">🎵 Sons</button>
+    <button onclick="openTab('docs', this)">📑 Documents</button>
+    <button onclick="openTab('autres', this)">📂 Autres</button>
+    <button onclick="openTab('results', this)" id="resultsTab" style="display:none;">🔎 Résultats</button>
+  </div>
+
+  <!-- Contenus onglets -->
+  <div id="photos" class="tab-content active"><ul id="photos-list"></ul></div>
+  <div id="videos" class="tab-content"><ul id="videos-list"></ul></div>
+  <div id="sons" class="tab-content"><ul id="sons-list"></ul></div>
+  <div id="docs" class="tab-content">
+  <ul id="docs-list"></ul>
+</div>
+
+  <div id="autres" class="tab-content">
+  <div class="iframe-container" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; border: 1px solid #444; background: #00a67e;">
+    <div style="background: linear-gradient(90deg, #00a67e, #008060); padding: 10px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
+      <span><i class="fas fa-comment-dots"></i> Mon site 2</span>
+      <a id="link-site2" href="#" target="_blank" style="color: white; text-decoration: none; font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">Plein écran</a>
+    </div>
+    <iframe id="iframe-site2" src="" width="100%" height="350px" style="border:none; background: #212121;" allow="clipboard-read; clipboard-write"></iframe>
+  </div>
+
+  <div class="iframe-container" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; border: 1px solid #444; background: #000;">
+    <div style="background: linear-gradient(135deg, #e2001a, #a50012); padding: 10px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
+      <span><i class="fas fa-tv"></i> Mon site 3</span>
+      <a id="link-site3" href="#" target="_blank" style="color: white; text-decoration: none; font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">Plein écran</a>
+    </div>
+    <iframe id="iframe-site3" src="" width="100%" height="350px" style="border:none; background: #000;" allowfullscreen></iframe>
+  </div>
+
+  <ul id="autres-list" style="margin-top: 20px;"></ul>
+</div>
+
+  <!-- Onglet Tchat -->
+  <div id="tchat" class="tab-content">
+    <div id="chat-wrapper">
+      <input id="chat-input" type="text" placeholder="Écris ton message ici et appuie sur Entrée...          Cet endroit est fait pour dialoguer entre amis, dites qui vous êtes quand vous laisser un message :)" />
+      <div id="chat-messages" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<audio id="notifSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+
+<script>
+// === Variables générales ===
+const API_FILES='/api/files';
+let clientId=localStorage.getItem('clientId')||'u-'+Date.now().toString(36)+'-'+Math.floor(Math.random()*9000+1000).toString(36);
+localStorage.setItem('clientId', clientId);
+
+let ws=null;
+const perPage={photos:4,videos:4,sons:4,docs:4,autres:4,results:4};
+const currentPage={photos:0,videos:0,sons:0,docs:0,autres:0,results:0};
+const loading={photos:false,videos:false,sons:false,docs:false,autres:false,results:false};
+let searchQuery='';
+window.isAdmin=false;
+let totalMessages=0;
+const loadedFiles={photos:[],videos:[],sons:[],docs:[],autres:[]};
+
+// === Utilitaires ===
+function showToast(text, ms=2500){const t=document.getElementById('toast'); t.style.display='block'; t.textContent=text; setTimeout(()=>t.style.display='none', ms);}
+function safeText(s){return String(s||'');}
+function encodePath(p){return p.split('/').map(seg=>encodeURIComponent(seg)).join('/');}
+function saveMessageCount(count){localStorage.setItem('lastSeenCount', String(count));}
+function getSavedMessageCount(){const v = localStorage.getItem('lastSeenCount'); return v===null?null:parseInt(v,10);}
+function linkify(text){return text.replace(/((https?:\/\/[^\s]+)|(www\.[^\s]+))/g, m=>`<a href="${m.startsWith('http')?m:'http://'+m}" target="_blank" rel="noopener noreferrer">${m}</a>`);}
+function getUserColor(id){const colors=['#1E90FF','#FFD700','#FF4500','#32CD32','#FF69B4','#8A2BE2']; let hash=0; for(let i=0;i<id.length;i++) hash=id.charCodeAt(i)+((hash<<5)-hash); return colors[Math.abs(hash)%colors.length];}
+
+// === Gestion onglets ===
+function openTab(tab, btn){
+  document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active'));
+  document.querySelectorAll('.tabs button, .tab-button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tab)?.classList.add('active');
+  if(btn) btn.classList.add('active');
+
+  if(tab==='tchat'){
+    const badge=document.getElementById('notifBadge');
+    badge.style.display='none';
+    badge.textContent='0';
+    
+    // On enregistre que tous les messages actuels ont été vus
+    saveMessageCount(totalMessages);
+    
+    // MISE À JOUR DU BADGE (Interne + Icône PWA)
+    updateNotifBadge(); 
+
+    const box=document.getElementById('chat-messages');
+    if(box) box.scrollTop=box.scrollHeight;
+  }
+}
+// === Chargement fichiers ===
+async function loadFiles(type, reset=false){
+  if(loading[type]) return; loading[type]=true;
+  if(reset){currentPage[type]=0; const el=document.getElementById(type+'-list'); if(el) el.innerHTML=''; loadedFiles[type]=[];}
+  try{
+    const start=currentPage[type]*perPage[type];
+    const url=`${API_FILES}?type=${encodeURIComponent(type)}&start=${start}&count=${perPage[type]}&q=${encodeURIComponent(searchQuery)}${window.isAdmin?"&x=1":""}`;
+    const res=await fetch(url); if(!res.ok) throw new Error('bad response '+res.status);
+    const data=await res.json();
+    renderFiles(type, data.files||[]);
+    if(data.files && data.files.length>0){currentPage[type]++; loadedFiles[type].push(...data.files);}
+  }catch(e){console.error('Erreur loadFiles',e); showToast('Erreur chargement fichiers');}
+  loading[type]=false;
+}
+
+function renderFiles(type, files){
+  const listEl=document.getElementById(type+'-list'); if(!listEl) return;
+  const basePath='/files';
+  files.forEach(f=>{
+    const displayName=safeText(f);
+    const encoded=encodePath(f);
+    let mediaHTML='';
+    if(type==='sons') mediaHTML=`<audio controls src="${basePath}/${encoded}"></audio>`;
+    else if(type==='photos') mediaHTML=`<img src="${basePath}/${encoded}" alt="${displayName}" class="img-clickable" ondblclick="openLightbox(this.src)">`;
+    else if(type==='videos') mediaHTML=`<video controls src="${basePath}/${encoded}"></video>`;
+    else if(type==='docs') mediaHTML=`<iframe src="${basePath}/${encoded}" width="100%" height="200"></iframe>`;
+    const li=document.createElement('li');
+    li.innerHTML=`<div style="flex:1 1 auto;"><strong>${displayName}</strong>${mediaHTML}</div>
+      <div style="flex:0 0 auto;display:flex;gap:10px;align-items:center;">
+        <a href="${basePath}/${encoded}" download style="color:#1E90FF;font-size:18px;"><i class="fas fa-download"></i></a>
+        <span class="delete-btn" data-file="${f}" style="cursor:pointer;color:red;display:${window.isAdmin?'inline-block':'none'};"><i class="fas fa-trash"></i></span>
+      </div>`;
+    listEl.appendChild(li);
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(btn=>{
+    btn.onclick=async ()=>{
+      if(!window.isAdmin) return showToast('Non autorisé ❌');
+      if(!confirm(`Supprimer le fichier ${btn.dataset.file}?`)) return;
+      try{
+        const encodedParam=encodeURIComponent(btn.dataset.file);
+        const res=await fetch(`/api/files/${encodedParam}`,{method:'DELETE'});
+        const data=await res.json();
+        if(data.success){showToast("Fichier supprimé ✅"); loadFiles(type,true);}
+        else showToast("Erreur suppression");
+      }catch(e){console.error('Delete error',e); showToast("Erreur serveur");}
+    };
+  });
+}
+
+// === Recherche Résultats complète ===
+// === Recherche Résultats complète (lettres consécutives, ordre exact) ===
+async function showSearchResults(query){
+  const resultsList = document.getElementById('results-list');
+  resultsList.innerHTML = '';
+  const types = ['photos','videos','sons','docs','autres'];
+  let count = 0;
+
+  // === Recherche stricte : lettres consécutives, ordre exact ===
+  if(query.length < 3) return; // minimum 3 lettres
+  const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+
+  for(const type of types){
+    try{
+      const url = `${API_FILES}?type=${type}&start=0&count=1000&q=${encodeURIComponent(query)}${window.isAdmin?"&x=1":""}`;
+      const res = await fetch(url);
+      if(!res.ok) continue;
+      const data = await res.json();
+
+      data.files.forEach(f => {
+        if (!regex.test(f)) return; // ne garde que les fichiers contenant la sous-chaîne exacte
+        const encoded = encodePath(f);
+        let mediaHTML = '';
+        if(type==='sons') mediaHTML=`<audio controls src="/files/${encoded}"></audio>`;
+        else if(type==='photos') mediaHTML=`<img src="/files/${encoded}" alt="${f}">`;
+        else if(type==='videos') mediaHTML=`<video controls src="/files/${encoded}"></video>`;
+        else if(type==='docs') mediaHTML=`<iframe src="/files/${encoded}" width="100%" height="200"></iframe>`;
+
+        const li = document.createElement('li');
+        li.innerHTML = `<div style="flex:1 1 auto;"><strong>[${type}] ${f}</strong>${mediaHTML}</div>
+          <div style="flex:0 0 auto;display:flex;gap:10px;align-items:center;">
+            <a href="/files/${encoded}" download style="color:#1E90FF;font-size:18px;"><i class="fas fa-download"></i></a>
+            <span class="delete-btn" data-file="${f}" style="cursor:pointer;color:red;display:${window.isAdmin?'inline-block':'none'};"><i class="fas fa-trash"></i></span>
+          </div>`;
+        resultsList.appendChild(li);
+        count++;
+      });
+    }catch(err){ console.error(err); }
+  }
+
+  const resultsTab = document.getElementById('resultsTab');
+  if(count>0){ 
+    resultsTab.style.display='inline-block'; 
+    openTab('results'); 
+  }
+  else resultsTab.style.display='none';
+
+  // --- Gestion suppression fichiers dans résultats ---
+  document.querySelectorAll('#results-list .delete-btn').forEach(btn=>{
+    btn.onclick=async ()=>{
+      if(!window.isAdmin) return showToast('Non autorisé ❌');
+      if(!confirm(`Supprimer le fichier ${btn.dataset.file}?`)) return;
+      try{
+        const encodedParam=encodeURIComponent(btn.dataset.file);
+        const res=await fetch(`/api/files/${encodedParam}`,{method:'DELETE'});
+        const data=await res.json();
+        if(data.success){showToast("Fichier supprimé ✅"); showSearchResults(query);}
+        else showToast("Erreur suppression");
+      }catch(e){console.error('Delete error',e); showToast("Erreur serveur");}
+    };
+  });
+}
+
+
+// Input recherche
+document.getElementById('searchBar').addEventListener('input', e=>{
+  searchQuery=e.target.value.trim();
+  if(searchQuery===''){document.getElementById('resultsTab').style.display='none'; return;}
+  showSearchResults(searchQuery);
+});
+
+// === Upload ===
+document.getElementById('upload-icon').addEventListener('click',()=>document.getElementById('fileUpload').click());
+document.getElementById('fileUpload').addEventListener('change', function(e) {
+  const files = e.target.files;
+  if (!files.length) return;
+
+  const formData = new FormData();
+  for (const f of files) formData.append('file', f);
+
+  // Éléments de l'interface
+  const container = document.getElementById('upload-progress-container');
+  const progressBar = document.getElementById('upload-progress-bar');
+  const statusText = document.getElementById('upload-status-text');
+
+  // Initialisation
+  container.style.display = 'block';
+  progressBar.style.width = '0%';
+  statusText.textContent = "Préparation de l'envoi...";
+
+  const xhr = new XMLHttpRequest();
+
+  // Suivi de la progression
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const percentComplete = (event.loaded / event.total) * 100;
+      progressBar.style.width = percentComplete + '%';
+      statusText.textContent = `Upload : ${Math.round(percentComplete)}%`;
+    }
+  };
+
+  // Fin de l'upload
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      const data = JSON.parse(xhr.responseText);
+      if (data.success) {
+        showToast('Fichiers uploadés ✅');
+        statusText.textContent = "Terminé !";
+        // Rechargement des listes
+        Object.keys(perPage).forEach(t => loadFiles(t, true));
+      } else {
+        showToast('Erreur upload ❌');
+        statusText.textContent = "Erreur serveur.";
+      }
+    }
+    // Cacher la barre après 2 secondes
+    setTimeout(() => { container.style.display = 'none'; statusText.textContent = ""; }, 2000);
+  };
+
+  xhr.onerror = () => {
+    showToast('Erreur réseau ❌');
+    container.style.display = 'none';
+  };
+
+  xhr.open('POST', '/api/upload', true);
+  xhr.send(formData);
+});
+
+// === Scroll infini ===
+window.addEventListener('scroll', ()=>{
+  const scrollBottom=window.innerHeight+window.scrollY;
+  if(scrollBottom>=document.body.offsetHeight-200){
+    const activeTab=document.querySelector('.tab-content.active');
+    if(activeTab) loadFiles(activeTab.id);
+  }
+});
+
+// === Gestion du Badge de Notifications ===
+
+// === Gestion du Tchat et des Notifications ===
+
+async function initChat() {
+    // 1. Récupérer l'historique complet pour connaître le total réel au chargement
+    try {
+        const res = await fetch('/messages.json', { cache: 'no-store' });
+        if (res.ok) {
+            const history = await res.json();
+            totalMessages = history.length;
+        }
+    } catch (e) {
+        console.error("Erreur initialisation badge:", e);
+    }
+
+    // 2. Mettre à jour le badge immédiatement au chargement
+    updateNotifBadge();
+
+    // 3. Connexion WebSocket pour les nouveaux messages
+    ws = new WebSocket(`ws://${location.host}`);
+
+    ws.onmessage = e => {
+        try {
+            const msg = JSON.parse(e.data);
+
+            if (msg.type === 'history') {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = '';
+                msg.data.forEach(addMessage);
+
+                // Synchronisation du compteur
+                totalMessages = msg.data.length;
+
+                if (document.getElementById('tchat').classList.contains('active')) {
+                    saveMessageCount(totalMessages);
+                }
+                updateNotifBadge();
+            } 
+            else if (msg.type === 'message') {
+                addMessage(msg);
+                totalMessages++; 
+
+                // --- VIBRATION SYSTÉMATIQUE ---
+                // Vibre même si on est dans l'onglet message
+                if (navigator.vibrate) {
+                    navigator.vibrate([300, 30, 200, 30, 500]); 
+                }
+
+                // Si on est dans le tchat, on valide la lecture
+                if (document.getElementById('tchat').classList.contains('active')) {
+                    saveMessageCount(totalMessages);
+                }
+
+                // Mise à jour du badge
+                updateNotifBadge();
+            }
+        } catch (err) { 
+            console.error("Erreur WebSocket message:", err); 
+        }
+    };
+}
+
+function updateNotifBadge() {
+    const badge = document.getElementById('notifBadge');
+    if (!badge) return;
+    
+    const lastSeen = getSavedMessageCount(); 
+    const unseen = (lastSeen === null) ? totalMessages : Math.max(0, totalMessages - lastSeen);
+
+    if (unseen > 0) {
+        badge.style.display = 'inline-block';
+        badge.textContent = unseen;
+        // Affiche le chiffre sur l'icône de l'écran d'accueil
+        if ('setAppBadge' in navigator) navigator.setAppBadge(unseen);
+    } else {
+        badge.style.display = 'none';
+        // Enlève le badge de l'icône
+        if ('clearAppBadge' in navigator) navigator.clearAppBadge();
+    }
+}
+
+// FORCE L'EXECUTION AU CHARGEMENT POUR LE TEST
+window.addEventListener('load', () => {
+    setTimeout(updateNotifBadge, 1000); 
+});
+
+function addMessage(msg) {
+    const box = document.getElementById('chat-messages');
+    if (!box) return;
+    
+    const row = document.createElement('div'); 
+    row.className = 'message-row';
+    const time = document.createElement('span'); 
+    time.className = 'timestamp'; 
+    time.textContent = new Date(msg.time).toLocaleTimeString();
+    
+    const div = document.createElement('div'); 
+    div.className = 'message-bubble'; 
+    div.style.background = getUserColor(msg.clientId); 
+    div.innerHTML = `<span class="text">${linkify(msg.text)}</span>`;
+
+    if (msg.clientId === clientId) { 
+        row.classList.add('message-right'); 
+        div.classList.add('mine'); 
+        row.appendChild(div); 
+        row.appendChild(time);
+    } else { 
+        row.classList.add('message-left'); 
+        row.appendChild(time); 
+        row.appendChild(div);
+    }
+    box.appendChild(row); 
+    box.scrollTop = box.scrollHeight;
+}
+
+// Envoi du message avec Entrée
+document.getElementById('chat-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter' && ws && ws.readyState === WebSocket.OPEN) {
+        const text = e.target.value.trim(); 
+        if (!text) return; 
+        e.target.value = '';
+        ws.send(JSON.stringify({ type: 'message', text, clientId }));
+    }
+});
+
+// === Bouton étoile admin côté client ===
+// --- Bouton étoile admin ---
+document.getElementById('adminStar').addEventListener('click', async () => {
+  const code = prompt("Code magique ?");
+  if (!code) return;
+
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+      credentials: 'same-origin' // important pour la session
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // Activer le mode admin côté client
+      window.isAdmin = true;
+      document.getElementById('adminControls').style.display = 'block';
+
+      // Afficher les boutons supprimer
+      document.querySelectorAll('.delete-btn').forEach(b => b.style.display = 'inline-block');
+
+      showToast('Activé ✅');
+    } else {
+      showToast('Bien tenté ❌');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Erreur serveur ❌');
+  }
+});
+
+// --- Supprimer tous les messages ---
+document.getElementById('clearChatBtn').addEventListener('click', async () => {
+  if (!window.isAdmin) return showToast('Vous devez être admin ❌');
+
+  if (!confirm("Supprimer tous les messages ?")) return;
+
+  try {
+    const res = await fetch('/api/messages', {
+      method: 'DELETE',
+      credentials: 'same-origin' // <- essentiel pour inclure la session
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('chat-messages').innerHTML = '';
+      showToast('Tous les messages ont été supprimés ✅');
+    } else {
+      showToast('Non autorisé ❌');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Erreur serveur ❌');
+  }
+});
+
+// --- Boutons supprimer fichiers ---
+function initDeleteFileButtons() {
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.onclick = async () => {
+      if (!window.isAdmin) return showToast('Vous devez être admin ❌');
+
+      if (!confirm(`Supprimer le fichier ${btn.dataset.file} ?`)) return;
+
+      try {
+        const encodedParam = encodeURIComponent(btn.dataset.file);
+        const res = await fetch(`/api/files/${encodedParam}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Fichier supprimé ✅');
+          // Recharger la liste après suppression
+          const activeTab = document.querySelector('.tab-content.active')?.id;
+          if (activeTab && typeof loadFiles === 'function') loadFiles(activeTab, true);
+        } else {
+          showToast('Erreur suppression ❌');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Erreur serveur ❌');
+      }
+    };
+  });
+}
+
+// Appeler après le rendu de fichiers
+initDeleteFileButtons();
+
+// === Initialisation et chargements ===
+Object.keys(perPage).forEach(t=>loadFiles(t,true));
+initChat();
+
+// --- Lecture exclusive & auto play next ---
+document.addEventListener('play', e=>{
+  if(e.target.tagName==='AUDIO'||e.target.tagName==='VIDEO'){
+    document.querySelectorAll('audio,video').forEach(m=>{if(m!==e.target&&!m.paused)m.pause();});
+  }
+}, true);
+
+document.addEventListener('ended', e=>{
+  if(e.target.tagName==='AUDIO'||e.target.tagName==='VIDEO'){
+    const li=e.target.closest('li'); if(!li) return;
+    let next=li.nextElementSibling;
+    while(next){ const media=next.querySelector('audio,video'); if(media){media.play(); break;} next=next.nextElementSibling;}
+  }
+}, true);
+</script>
+<!-- === Lecteur média global (audio + vidéo) === -->
+<div id="global-player">
+  <div id="player-body">
+    <button id="prevBtn"><i class="fas fa-backward"></i></button>
+    <button id="playPauseBtn"><i class="fas fa-play"></i></button>
+    <button id="nextBtn"><i class="fas fa-forward"></i></button>
+    <button id="shuffleBtn"><i class="fas fa-random"></i></button>
+    <input type="range" id="progressSlider" min="0" max="100" value="0" style="flex:1;">
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" />
+    <video id="mainVideo" style="display:none;max-height:150px;border-radius:8px;" preload="none" controls></video>
+    <audio id="mainAudio" preload="none" style="display:none;"></audio>
+  </div>
+<!-- Canvas visualiseur audio -->
+<canvas id="audioVisualizer" style="display:none; width:100%; height:50px; border-radius:6px;"></canvas>
+  <button id="togglePlayerBtn" title="Masquer le lecteur"><i class="fas fa-chevron-down"></i></button>
+</div>
+
+<button id="showPlayerFloating" title="Afficher le lecteur"><i class="fas fa-chevron-up"></i></button>
+
+<style>
+#global-player {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,20,20,0.95);
+  padding: 10px 16px;
+  border-radius: 12px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  z-index: 999;
+  width: 90%;
+  max-width: 600px;
+}
+#player-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+#player-body button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+#player-body button:hover { transform: scale(1.2); }
+#volumeSlider { width: 80px; }
+#togglePlayerBtn {
+  background: none;
+  border: none;
+  color: #1E90FF;
+  cursor: pointer;
+  font-size: 16px;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+#showPlayerFloating {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background: #1E90FF;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+@media(max-width:500px){
+  #global-player { flex-direction: column; gap:6px; padding:10px; }
+  #volumeSlider { width: 100%; }
+  #togglePlayerBtn { top: 3px; right: 3px; }
+}
+#audioVisualizer {
+  background: rgba(255,255,255,0.05);
+}
+</style>
+
+<script>
+// --- Variables ---
+let playlist = [];
+let currentIndex = 0;
+let isShuffle = false;
+let playerVisible = false;
+
+const player = document.getElementById('global-player');
+const audio = document.getElementById('mainAudio');
+const video = document.getElementById('mainVideo');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const progressSlider = document.getElementById('progressSlider');
+const togglePlayerBtn = document.getElementById('togglePlayerBtn');
+const showPlayerFloating = document.getElementById('showPlayerFloating');
+
+// --- Rafraîchir playlist avec médias visibles ---
+function refreshPlaylist() {
+  playlist = Array.from(document.querySelectorAll('#sons-list audio, #videos-list video')).map(el => el.src);
+}
+
+// --- Afficher lecteur ---
+function showPlayer(type) {
+  player.style.display = 'flex';
+  showPlayerFloating.style.display = 'none';
+  playerVisible = true;
+  audio.style.display = type==='audio'?'block':'none';
+  video.style.display = type==='video'?'block':'none';
+  playPauseBtn.innerHTML='<i class="fas fa-pause"></i>';
+}
+
+// --- Masquer lecteur ---
+function hidePlayer() {
+  player.style.display='none';
+  showPlayerFloating.style.display='block';
+  playerVisible=false;
+}
+
+// --- Jouer média par index ---
+function playAt(index){
+  if(playlist.length===0) return;
+  const src = playlist[index]; currentIndex=index;
+  if(src.match(/\.(mp4|webm|mov|avi|mkv)$/i)){
+    video.src=src; video.play(); showPlayer('video');
+    audio.pause(); audio.src='';
+  } else {
+    audio.src=src; audio.play(); showPlayer('audio');
+    video.pause(); video.src='';
+  }
+}
+
+// --- Bouton Play/Pause ---
+playPauseBtn.onclick = () => {
+  const media = video.style.display==='block'?video:audio;
+  if(audio.paused && video.paused && (!audio.src && !video.src)){
+    refreshPlaylist();
+    if(playlist.length===0) return;
+    currentIndex=Math.floor(Math.random()*playlist.length);
+    playAt(currentIndex);
+    return;
+  }
+  if(media.paused){ media.play(); playPauseBtn.innerHTML='<i class="fas fa-pause"></i>'; }
+  else{ media.pause(); playPauseBtn.innerHTML='<i class="fas fa-play"></i>'; }
+};
+
+// --- Précédent / Suivant ---
+prevBtn.onclick = () => { if(playlist.length===0) return; currentIndex=(currentIndex-1+playlist.length)%playlist.length; playAt(currentIndex); };
+nextBtn.onclick = () => { if(playlist.length===0) return; currentIndex=isShuffle?Math.floor(Math.random()*playlist.length):(currentIndex+1)%playlist.length; playAt(currentIndex); };
+
+// --- Shuffle ---
+shuffleBtn.onclick = () => { isShuffle=!isShuffle; shuffleBtn.style.color=isShuffle?'#FFD700':'#fff'; };
+
+// --- Volume ---
+volumeSlider.oninput = e => { audio.volume=e.target.value; video.volume=e.target.value; };
+
+// --- Toggle Player ---
+togglePlayerBtn.onclick = hidePlayer;
+showPlayerFloating.onclick = ()=>{ player.style.display='flex'; showPlayerFloating.style.display='none'; playerVisible=true; };
+
+// --- Progress bar ---
+function updateProgress() {
+  const media = audio.style.display==='block'?audio:video;
+  if(media.duration) progressSlider.value=(media.currentTime/media.duration)*100;
+}
+audio.addEventListener('timeupdate',updateProgress);
+video.addEventListener('timeupdate',updateProgress);
+progressSlider.addEventListener('input', e => {
+  const media = audio.style.display==='block'?audio:video;
+  if(media.duration) media.currentTime=(e.target.value/100)*media.duration;
+});
+
+// --- Auto play next et hide auto ---
+[audio,video].forEach(media=>{
+  media.addEventListener('ended', ()=>{
+    if(playlist.length===0) return;
+    currentIndex=isShuffle?Math.floor(Math.random()*playlist.length):(currentIndex+1)%playlist.length;
+    playAt(currentIndex);
+  });
+  media.addEventListener('pause', ()=>{
+    setTimeout(()=>{ if(audio.paused && video.paused) hidePlayer(); }, 800);
+  });
+  media.addEventListener('play', ()=>{ showPlayer(media.tagName.toLowerCase()); });
+});
+audio.addEventListener('play', () => {
+  visualizerColor = randomVisualizerColor();
+});
+
+// --- Jouer manuellement depuis liste ---
+document.addEventListener('play', e=>{
+  const tag=e.target.tagName;
+  if((tag==='AUDIO'||tag==='VIDEO') && !['mainAudio','mainVideo'].includes(e.target.id)){
+    refreshPlaylist();
+    const src=e.target.src;
+    currentIndex=playlist.indexOf(src);
+    isShuffle=false;
+    const type=tag.toLowerCase();
+    if(type==='audio'){ audio.src=src; audio.play(); showPlayer('audio'); video.pause(); video.src=''; }
+    else{ video.src=src; video.play(); showPlayer('video'); audio.pause(); audio.src=''; }
+  }
+}, true);
+
+// --- Afficher bouton flottant au chargement ---
+showPlayerFloating.style.display='block';
+// --- Visualiseur audio ---
+const canvas = document.getElementById('audioVisualizer');
+const canvasCtx = canvas.getContext('2d');
+let audioCtx, analyser, source;
+
+let visualizerColor = { r: 120, g: 120, b: 255 };
+
+function randomVisualizerColor() {
+  return {
+    r: Math.floor(Math.random() * 156) + 100,
+    g: Math.floor(Math.random() * 156) + 100,
+    b: Math.floor(Math.random() * 156) + 100
+  };
+}
+function initAudioVisualizer() {
+  if(audioCtx) return; // déjà initialisé
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 128;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function draw() {
+    requestAnimationFrame(draw);
+    if(audio.paused || audio.style.display!=='block') return;
+
+    analyser.getByteFrequencyData(dataArray);
+    canvasCtx.fillStyle = 'rgba(0,0,0,0)';
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 1.5;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+  const barHeight = dataArray[i];
+  if (barHeight < 5) continue;
+
+  // --- Dégradé flamme vertical ---
+  const gradient = canvasCtx.createLinearGradient(
+    0,
+    canvas.height,
+    0,
+    canvas.height - barHeight
+  );
+
+  gradient.addColorStop(0, 'rgb(120,0,0)');     // rouge sombre (braise)
+  gradient.addColorStop(0.4, 'rgb(255,60,0)');  // rouge vif
+  gradient.addColorStop(0.7, 'rgb(255,140,0)'); // orange
+  gradient.addColorStop(0.9, 'rgb(255,220,120)'); // jaune chaud
+  gradient.addColorStop(1, 'rgb(255,255,230)'); // blanc chaud (pointe)
+
+  // --- Glow chaud ---
+  canvasCtx.shadowBlur = barHeight / 3;
+  canvasCtx.shadowColor = 'rgb(255,140,0)';
+  canvasCtx.fillStyle = gradient;
+
+  canvasCtx.fillRect(
+    x,
+    canvas.height - barHeight,
+    barWidth,
+    barHeight
+  );
+
+  x += barWidth + 1;
+ }
+
+}
+  draw();
+
+  // Connecter audio au visualiseur
+  source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+// --- Affichage / Masquage selon type ---
+function showPlayer(type) {
+  player.style.display = 'flex';
+  showPlayerFloating.style.display = 'none';
+  playerVisible = true;
+  if(type==='audio'){
+    audio.style.display='block';
+    video.style.display='none';
+    canvas.style.display='block';
+    initAudioVisualizer();
+  } else {
+    audio.style.display='none';
+    video.style.display='block';
+    canvas.style.display='none';
+  }
+  playPauseBtn.innerHTML='<i class="fas fa-pause"></i>';
+}
+// === Gestion de la déconnexion (Cadenas) ===
+document.getElementById('logoutLock').addEventListener('click', async () => {
+    try {
+        // On demande au serveur de détruire la session et le cookie
+        const res = await fetch('/api/admin/logout', { 
+            method: 'POST',
+            credentials: 'same-origin' 
+        });
+        
+        const data = await res.json();
+
+        if (data.success) {
+            window.isAdmin = false;
+            showToast('Session fermée 🔒');
+            // Redirection vers la page propre
+            setTimeout(() => {
+                window.location.href = "/onglets.html";
+            }, 800);
+        } else {
+            showToast('Erreur lors de la déconnexion');
+        }
+    } catch (err) {
+        console.error("Erreur:", err);
+        // En cas d'échec réseau, on tente de vider le stockage local et on recharge
+        window.location.href = "/onglets.html";
+    }
+});
+
+</script>
+<div id="lightbox">
+  <span id="close-lightbox" onclick="closeLightbox()">&times;</span>
+  
+  <button id="prevImg" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+  <img id="lightbox-img" src="" alt="Agrandissement">
+  <button id="nextImg" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+</div>
+
+<style>
+#lightbox {
+  display: none; 
+  position: fixed;
+  z-index: 2500; /* Très haut pour être au-dessus de tout */
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  cursor: zoom-out;
+}
+
+#lightbox-img {
+  max-width: 90%;
+  max-height: 90%;
+  border: 3px solid white;
+  border-radius: 8px;
+  /* Animation d'ouverture */
+  transform: scale(0.8);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Quand la lightbox est active, l'image prend sa taille normale */
+#lightbox.active #lightbox-img {
+  transform: scale(1);
+}
+
+#close-lightbox {
+  position: absolute;
+  top: 20px; right: 35px;
+  color: white; font-size: 40px; font-weight: bold;
+  cursor: pointer;
+}
+#lightbox {
+  display: none; 
+  position: fixed;
+  z-index: 2500;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  cursor: default; /* Changé de zoom-out pour ne pas fermer par erreur */
+}
+
+/* Style des boutons de navigation */
+.nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-size: 40px;
+  padding: 20px;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background 0.3s, transform 0.2s;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2600;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+#prevImg { left: 20px; }
+#nextImg { right: 20px; }
+
+#lightbox-img {
+  max-width: 80%; /* Réduit pour laisser de la place aux boutons */
+  max-height: 90%;
+  border: 3px solid white;
+  border-radius: 8px;
+  transform: scale(0.8);
+  transition: transform 0.3s;
+  cursor: zoom-out; /* On garde le curseur de fermeture sur l'image */
+}
+
+/* Masquer les boutons sur mobile si trop encombrant (optionnel) */
+@media (max-width: 600px) {
+  .nav-btn { font-size: 24px; width: 50px; height: 50px; padding: 10px; }
+  #prevImg { left: 5px; }
+  #nextImg { right: 5px; }
+}
+
+.nav-btn {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+</style>
+
+<script>
+let currentPhotoList = [];
+let currentPhotoIndex = 0;
+
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lightbox-img');
+  
+  // 1. Récupérer toutes les images de l'onglet photo uniquement
+  const allImages = Array.from(document.querySelectorAll('#photos-list img.img-clickable'));
+  currentPhotoList = allImages.map(img => img.src);
+  currentPhotoIndex = currentPhotoList.indexOf(src);
+
+  lbImg.src = src;
+  lb.style.display = 'flex';
+  
+  history.pushState({ lightbox: true }, ""); 
+  setTimeout(() => lb.classList.add('active'), 10);
+  
+  // Empêcher le clic sur l'image de fermer si on clique sur les boutons
+  lbImg.onclick = (e) => { e.stopPropagation(); closeLightbox(); };
+}
+
+// Fonction pour changer d'image
+function changeImage(direction) {
+  currentPhotoIndex += direction;
+  
+  // Bouclage (si on dépasse la fin, on revient au début)
+  if (currentPhotoIndex >= currentPhotoList.length) currentPhotoIndex = 0;
+  if (currentPhotoIndex < 0) currentPhotoIndex = currentPhotoList.length - 1;
+  
+  const lbImg = document.getElementById('lightbox-img');
+  lbImg.style.transform = 'scale(0.9)'; // Petit effet de transition
+  
+  setTimeout(() => {
+    lbImg.src = currentPhotoList[currentPhotoIndex];
+    lbImg.style.transform = 'scale(1)';
+  }, 100);
+}
+
+// Événements boutons
+document.getElementById('prevImg').onclick = (e) => { e.stopPropagation(); changeImage(-1); };
+document.getElementById('nextImg').onclick = (e) => { e.stopPropagation(); changeImage(1); };
+
+// Support des touches du clavier (flèches)
+document.addEventListener('keydown', (e) => {
+  const lb = document.getElementById('lightbox');
+  if (lb.style.display === 'flex') {
+    if (e.key === "ArrowLeft") changeImage(-1);
+    if (e.key === "ArrowRight") changeImage(1);
+    if (e.key === "Escape") closeLightbox();
+  }
+});
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('active');
+  setTimeout(() => { lb.style.display = 'none'; }, 300);
+  if (history.state && history.state.lightbox) {
+    history.back();
+  }
+}
+
+// Cette partie détecte quand l'utilisateur appuie sur le bouton "Retour" du téléphone
+window.onpopstate = function(event) {
+  const lb = document.getElementById('lightbox');
+  if (lb.style.display === 'flex') {
+    // Si la lightbox est ouverte, on la ferme au lieu de changer de page
+    lb.classList.remove('active');
+    setTimeout(() => { lb.style.display = 'none'; }, 300);
+  }
+};
+// Gestion du swipe pour mobile
+let touchstartX = 0;
+let touchendX = 0;
+
+const lbContainer = document.getElementById('lightbox');
+
+lbContainer.addEventListener('touchstart', e => {
+    touchstartX = e.changedTouches[0].screenX;
+}, false);
+
+lbContainer.addEventListener('touchend', e => {
+    touchendX = e.changedTouches[0].screenX;
+    handleGesture();
+}, false);
+
+function handleGesture() {
+    // Si le balayage est assez large (plus de 50px)
+    if (touchendX < touchstartX - 50) {
+        changeImage(1);  // Swipe vers la gauche -> Image suivante
+    }
+    if (touchendX > touchstartX + 50) {
+        changeImage(-1); // Swipe vers la droite -> Image précédente
+    }
+}
+// === Gestion du Plein Écran (Bouton Bleu + Appui long étoile) ===
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const adminStar = document.getElementById('adminStar');
+let adminStarTimer;
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.error(`Erreur: ${err.message}`);
+        });
+        if (navigator.vibrate) navigator.vibrate(50); // Vibration sur mobile
+        fullscreenBtn.classList.replace('fa-expand', 'fa-compress');
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+            fullscreenBtn.classList.replace('fa-compress', 'fa-expand');
+        }
+    }
+}
+
+// Action au clic sur le bouton bleu
+fullscreenBtn.addEventListener('click', toggleFullScreen);
+
+// Action sur appui long (800ms) sur l'étoile dorée
+adminStar.addEventListener('touchstart', () => {
+    adminStarTimer = setTimeout(toggleFullScreen, 800);
+}, { passive: true });
+
+adminStar.addEventListener('touchend', () => {
+    clearTimeout(adminStarTimer);
+});
+
+// Synchronisation de l'icône si on sort du plein écran via la touche Echap
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        fullscreenBtn.classList.replace('fa-compress', 'fa-expand');
+    }
+});
+fetch('/api/iframe-links')
+  .then(res => res.json())
+  .then(data => {
+    if(data.site2) {
+      document.getElementById('iframe-site2').src = data.site2;
+      document.getElementById('link-site2').href = data.site2;
+    }
+    if(data.site3) {
+      document.getElementById('iframe-site3').src = data.site3;
+      document.getElementById('link-site3').href = data.site3;
+    }
+  });
+</script>
+
+</body>
+</html>
